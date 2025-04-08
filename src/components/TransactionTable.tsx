@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   ArrowUpRight, 
   ArrowDownRight,
   Search,
-  Filter 
+  Filter, 
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { 
   Card, 
@@ -24,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
 
 interface Transaction {
   id: string;
@@ -74,10 +77,111 @@ const transactions: Transaction[] = [
     category: 'Expenses',
     amount: -210.33,
     type: 'expense'
+  },
+  {
+    id: '6',
+    date: new Date('2025-03-25'),
+    description: 'Marketing Services',
+    category: 'Expenses',
+    amount: -350,
+    type: 'expense'
+  },
+  {
+    id: '7',
+    date: new Date('2025-03-23'),
+    description: 'Consulting Project - DEF Inc',
+    category: 'Income',
+    amount: 2750,
+    type: 'income'
+  },
+  {
+    id: '8',
+    date: new Date('2025-03-20'),
+    description: 'Rental Expenses',
+    category: 'Expenses',
+    amount: -1500,
+    type: 'expense'
+  },
+  {
+    id: '9',
+    date: new Date('2025-03-18'),
+    description: 'Equipment Purchase',
+    category: 'Expenses',
+    amount: -899.99,
+    type: 'expense'
+  },
+  {
+    id: '10',
+    date: new Date('2025-03-15'),
+    description: 'Online Course Subscription',
+    category: 'Expenses',
+    amount: -79.99,
+    type: 'expense'
+  },
+  {
+    id: '11',
+    date: new Date('2025-03-12'),
+    description: 'Refund from Vendor',
+    category: 'Income',
+    amount: 150,
+    type: 'income'
+  },
+  {
+    id: '12',
+    date: new Date('2025-03-10'),
+    description: 'Insurance Payment',
+    category: 'Expenses',
+    amount: -320.5,
+    type: 'expense'
   }
 ];
 
-export const TransactionTable = () => {
+interface TransactionTableProps {
+  showFilters?: boolean;
+  showPagination?: boolean;
+  limit?: number;
+}
+
+export const TransactionTable = ({ 
+  showFilters = false, 
+  showPagination = false,
+  limit
+}: TransactionTableProps) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const { toast } = useToast();
+  
+  const pageSize = limit || 5;
+  const filteredTransactions = transactions.filter(transaction => 
+    transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    transaction.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const totalPages = Math.ceil(filteredTransactions.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + pageSize);
+  
+  const handleDelete = (id: string) => {
+    // In a real app, this would delete from database
+    toast({
+      title: "Transaction deleted",
+      description: "The transaction has been removed",
+    });
+  };
+  
+  const handleEdit = (id: string) => {
+    setEditingId(id);
+    // In a real app, this would open an edit form
+    toast({
+      title: "Edit mode",
+      description: "Editing functionality would be implemented here",
+    });
+    
+    // Reset editing state after 2 seconds
+    setTimeout(() => setEditingId(null), 2000);
+  };
+
   return (
     <Card className="finance-card">
       <CardHeader>
@@ -86,19 +190,23 @@ export const TransactionTable = () => {
             <CardTitle>Recent Transactions</CardTitle>
             <CardDescription>Your recent financial activities</CardDescription>
           </div>
-          <div className="flex gap-2">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                type="search" 
-                placeholder="Search..." 
-                className="pl-8 md:w-[200px] lg:w-[250px]" 
-              />
+          {showFilters && (
+            <div className="flex gap-2">
+              <div className="relative w-full md:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Search..." 
+                  className="pl-8 md:w-[200px] lg:w-[250px]" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Button size="icon" variant="outline">
+                <Filter className="h-4 w-4" />
+              </Button>
             </div>
-            <Button size="icon" variant="outline">
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -109,11 +217,12 @@ export const TransactionTable = () => {
               <TableHead>Description</TableHead>
               <TableHead>Category</TableHead>
               <TableHead className="text-right">Amount</TableHead>
+              {showFilters && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => (
-              <TableRow key={transaction.id}>
+            {(limit ? paginatedTransactions : filteredTransactions).map((transaction) => (
+              <TableRow key={transaction.id} className={editingId === transaction.id ? 'bg-primary/5' : ''}>
                 <TableCell className="font-medium">
                   {transaction.date.toLocaleDateString('en-US', { 
                     month: 'short', 
@@ -137,14 +246,53 @@ export const TransactionTable = () => {
                     currency: 'USD' 
                   }).format(transaction.amount)}
                 </TableCell>
+                {showFilters && (
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(transaction.id)}>
+                        Edit
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-finance-red" onClick={() => handleDelete(transaction.id)}>
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </CardContent>
       <CardFooter className="border-t border-border pt-4 flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">Showing 5 of 124 transactions</div>
-        <Button variant="outline" size="sm">View All</Button>
+        <div className="text-sm text-muted-foreground">
+          {showPagination 
+            ? `Showing ${startIndex + 1} to ${Math.min(startIndex + pageSize, filteredTransactions.length)} of ${filteredTransactions.length} transactions`
+            : `Showing ${(limit ? paginatedTransactions.length : filteredTransactions.length)} of ${transactions.length} transactions`
+          }
+        </div>
+        {showPagination && totalPages > 1 ? (
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm">{currentPage} of {totalPages}</span>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm">View All</Button>
+        )}
       </CardFooter>
     </Card>
   );
