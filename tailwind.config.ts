@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Finance theme colors
+				finance: {
+					navy: '#0F2B46',
+					teal: '#03A9BA',
+					gray: '#F5F7FA',
+					green: '#36B37E',
+					red: '#FF5C5C',
+					yellow: '#FFAB00',
+					lightblue: '#E3F2FD'
 				}
 			},
 			borderRadius: {
