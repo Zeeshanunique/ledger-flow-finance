@@ -45,16 +45,18 @@ export const Navbar = () => {
             <FileText className="h-4 w-4" />
             <span>Reports</span>
           </Link>
-          <a href="#" className="flex items-center space-x-1 text-white/80 hover:text-finance-teal transition-colors">
+          <Link to="/settings" className={`flex items-center space-x-1 ${isActive('/settings') ? 'text-finance-teal' : 'text-white/80 hover:text-finance-teal'} transition-colors`}>
             <Settings className="h-4 w-4" />
             <span>Settings</span>
-          </a>
+          </Link>
         </nav>
         
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" className="p-2 text-white/90 hover:text-white">
-            <User className="h-5 w-5" />
-          </Button>
+          <Link to="/profile">
+            <Button variant="ghost" className="p-2 text-white/90 hover:text-white">
+              <User className="h-5 w-5" />
+            </Button>
+          </Link>
           
           {/* Mobile menu button */}
           <Button 
@@ -87,10 +89,14 @@ export const Navbar = () => {
               <FileText className="h-5 w-5" />
               <span>Reports</span>
             </Link>
-            <a href="#" className="flex items-center space-x-2 py-2 text-white/80 hover:text-finance-teal transition-colors">
+            <Link to="/settings" className={`flex items-center space-x-2 py-2 ${isActive('/settings') ? 'text-finance-teal' : 'text-white/80 hover:text-finance-teal'} transition-colors`}>
               <Settings className="h-5 w-5" />
               <span>Settings</span>
-            </a>
+            </Link>
+            <Link to="/profile" className={`flex items-center space-x-2 py-2 ${isActive('/profile') ? 'text-finance-teal' : 'text-white/80 hover:text-finance-teal'} transition-colors`}>
+              <User className="h-5 w-5" />
+              <span>Profile</span>
+            </Link>
           </div>
         </div>
       )}
